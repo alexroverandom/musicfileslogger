@@ -13,13 +13,13 @@ namespace MusicFilesFinder
 		{
 			Console.WriteLine("To start search enter path...");
 			var path = Console.ReadLine();
-			try
-			{
+			//try
+			//{
 				if (!Directory.Exists(path))
 				{
 					throw new PathException(path);
 				}
-				var finder = new MusicFinder("D:\\alexroverandom");
+				var finder = new MusicFinder(path);
 				Console.WriteLine("Search...");
 				finder.Find();
 				Console.WriteLine("Search is finished");
@@ -27,15 +27,15 @@ namespace MusicFilesFinder
 				Console.ReadKey();
 				finder.ShowResults();
 				Console.WriteLine("Good luck");
-			}
-			catch(PathException ex)
-			{
-				Console.WriteLine("Error: " + ex.ErrorMessage + " (No such directory)");
-			}
-			catch(Exception e)
-			{
-				Console.WriteLine("Error: " + e.Message);
-			}
+			//}
+			//catch(PathException ex)
+			//{
+			//	Console.WriteLine("Error: " + ex.ErrorMessage + " (No such directory)");
+			//}
+			//catch(Exception e)
+			//{
+			//	Console.WriteLine("Error: " + e.Message);
+			//}
 			Console.WriteLine("Exit");
 			Console.ReadKey();
 		}

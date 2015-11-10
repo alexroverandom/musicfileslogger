@@ -30,31 +30,38 @@ namespace MusicFilesFinder
 		private List<MusicFolder> _folders;
 		public List<MusicFolder> Folders { get { return _folders; } }
 
-		public MusicFinder(String path) 
+		public MusicFinder(String path)
 		{
 			_path = path;
 			_folders = new List<MusicFolder>();
 		}
 
-		public void Find() 
+		public void Find()
 		{
 			ProcessDirectory(_path, null);
 		}
 
-		public void ShowResults() 
+		public void ShowResults()
 		{
-			Console.WriteLine("List of folders:");
-			var leafFolders = Folders.Where(f => f.Files.Any()).ToList();
-			foreach (var leaf in leafFolders)
+			try
 			{
-				var file = _getFullPathToLeaf(leaf);
-				var files = String.Empty;
-				foreach (var f in leaf.Files)
+				Console.WriteLine("List of folders:");
+				var leafFolders = Folders.Where(f => f.Files.Any()).ToList();
+				foreach (var leaf in leafFolders)
 				{
-					files += String.Format("---{0}.{1}\n", f.Name, f.Extension);
+					var file = _getFullPathToLeaf(leaf);
+					var files = String.Empty;
+					foreach (var f in leaf.Files)
+					{
+						files += String.Format("---{0}.{1}\n", f.Name, f.Extension);
+					}
+					File.AppendAllText(Path.Combine(_path, "FindResults.txt"), file + "\n" + files);
+					Console.WriteLine(file);
 				}
-				File.AppendAllText(Path.Combine(_path, "FindResults.txt"), file + "\n" + files);
-				Console.WriteLine(file);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Error: " + e.Message);
 			}
 		}
 
@@ -71,28 +78,42 @@ namespace MusicFilesFinder
 				folder.ParentFolder = _folders.FirstOrDefault(f => f.Id == parent);
 			}
 			folder.Name = targetDirectory.Split('\\').ToList().Last();
-			string[] files = Directory.GetFiles(targetDirectory);
-			foreach (var ext in _musicFileExts)
+			try
 			{
-				string[] fileEntries = Directory.GetFiles(targetDirectory, String.Format("*{0}", ext));
-				if (fileEntries.Any())
+				string[] files = Directory.GetFiles(targetDirectory);
+				foreach (var ext in _musicFileExts)
 				{
-					foreach (var f in fileEntries)
+					string[] fileEntries = Directory.GetFiles(targetDirectory, String.Format("*{0}", ext));
+					if (fileEntries.Any())
 					{
-						folder.Files.Add(new MusicFile
+						foreach (var f in fileEntries)
 						{
-							FolderId = folder.Id,
-							Name = f.Split('\\').ToList().Last().Split('.')[0],
-							Extension = f.Split('\\').ToList().Last().Split('.')[1]
-						});
+							folder.Files.Add(new MusicFile
+							{
+								FolderId = folder.Id,
+								Name = f.Split('\\').ToList().Last().Split('.')[0],
+								Extension = f.Split('\\').ToList().Last().Split('.')[1]
+							});
+						}
 					}
 				}
 			}
-			_folders.Add(folder);
-			string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
-			foreach (string subdirectory in subdirectoryEntries)
+			catch (Exception e)
 			{
-				ProcessDirectory(subdirectory, folder.Id);
+				Console.WriteLine("Error: " + e.Message);
+			}
+			_folders.Add(folder);
+			try
+			{
+				string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
+				foreach (string subdirectory in subdirectoryEntries)
+				{
+					ProcessDirectory(subdirectory, folder.Id);
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("Error: " + ex.Message);
 			}
 		}
 	}
